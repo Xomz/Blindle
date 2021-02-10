@@ -1,0 +1,520 @@
+Pseudocode for MSP430:
+	
+	// Global Variables
+	debounce_delay = 50ms
+	scroll_button_state;
+	scroll_button_reading;
+	last_scroll_button_state = low;
+	cursor_position;
+	curr_text;
+	braille_lookup_table;
+
+
+	/* Debounces the scroll button */
+
+	Scroll_Button_Interrupt():
+
+		last_debounce_time = clock_time_ms()
+
+		if(clock_time_ms() - last_debounce_time > debounce_delay):
+
+			scroll_button_state = button reading
+
+		last_scroll_button_state = scroll_button_reading 
+
+
+	/* 
+		Given a character, looks up the braille translation in the lookup table and
+		returns a bool array type for which pins should be on (T) or off (F)
+
+	*/
+
+	bool[][] LookUpBraille(char c):
+
+		/* Full translation table: 
+
+			(space)			\u2800
+			!			⠮	\u282e
+			"			⠐	\u2810
+			#			⠼	\u283c
+			$			⠫	\u282b
+			%			⠩	\u2829
+			&			⠯	\u282f
+			'			⠄	\u2804
+			(			⠷	\u2837
+			)			⠾	\u283e
+			*			⠡	\u2821
+			+			⠬	\u282c
+			,			⠠	\u2820
+			-			⠤	\u2824
+			.			⠨	\u2828
+			/			⠌	\u280c
+			0			⠴	\u2834
+			1			⠂	\u2802
+			2			⠆	\u2806
+			3			⠒	\u2812
+			4			⠲	\u2832
+			5			⠢	\u2822
+			6			⠖	\u2816
+			7			⠶	\u2836
+			8			⠦	\u2826
+			9			⠔	\u2814
+			:			⠱	\u2831
+			;			⠰	\u2830
+			<			⠣	\u2823
+			=			⠿	\u283f
+			>			⠜	\u281c
+			?			⠹	\u2839
+			@			⠈	\u2808
+			A			⠁	\u2801
+			B			⠃	\u2803
+			C			⠉	\u2809
+			D			⠙	\u2819
+			E			⠑	\u2811
+			F			⠋	\u280b
+			G			⠛	\u281b
+			H			⠓	\u2813
+			I			⠊	\u280a
+			J			⠚	\u281a
+			K			⠅	\u2805
+			L			⠇	\u2807
+			M			⠍	\u280d
+			N			⠝	\u281d
+			O			⠕	\u2815
+			P			⠏	\u280f
+			Q			⠟	\u281f
+			R			⠗	\u2817
+			S			⠎	\u280e
+			T			⠞	\u281e
+			U			⠥	\u2825
+			V			⠧	\u2827
+			W			⠺	\u283a
+			X			⠭	\u282d
+			Y			⠽	\u283d
+			Z			⠵	\u2835
+			[			⠪	\u282a
+			\			⠳	\u2833
+			]			⠻	\u283b
+			^			⠘	\u2818
+			_			⠸	\u2838
+		*/
+
+		translation = braille_lookup_table[c] // would return 3x2 bool array type
+
+		return translation
+
+	/*Populates the lookup table, should only be run once*/
+
+	Populate_Lookup_Table(long int memory_address):
+
+		map = new hashmap(key_type=int, value_type = bool[][])
+		bool braille_char;
+		map[32] = { //SPACE 
+					{F, F},
+					{F, F},
+					{F, F}
+				  }
+		map[33] = { //!
+					{F, T},
+					{T, F},
+					{T, T}
+				  }
+		map[34] = { //"
+					{F, F},
+					{F, T},
+					{F, F}
+				  }
+		map[35] = { //#
+					{F, T},
+					{F, T},
+					{T, T}
+				  }
+		map[36] = { //$
+					{T, T},
+					{T, F},
+					{F, T}
+				  }
+		map[37] = { //%
+					{T, T},
+					{F, F},
+					{F, T}
+				  }
+		map[38] = { //&
+					{T, T},
+					{T, F},
+					{T, T}
+				  }
+		map[39] = { //'
+					{F, F},
+					{F, F},
+					{T, F}
+				  }
+		map[40] = { //(
+					{T, F},
+					{T, T},
+					{T, T}
+				  }
+		map[41] = { // )
+					{F, )},
+					{), )},
+					{), )}
+				  }
+		map[42] = { //*
+					{T, F},
+					{F, F},
+					{F, T}
+				  }
+		map[43] = { //+
+					{F, T},
+					{F, F},
+					{T, T}
+				  }
+		map[44] = { //,
+					{F, F},
+					{F, F},
+					{F, T}
+				  }
+		map[45] = { //-
+					{F, F},
+					{F, F},
+					{T, T}
+				  }
+		map[46] = { //.
+					{F, T},
+					{F, F},
+					{F, T}
+				  }
+		map[47] = {// /
+					{F, T},
+					{F, F},
+					{T, F}
+				  }
+		map[48] = { //0
+					{F, F},
+					{F, T},
+					{T, T}
+				  }
+		map[49] = { //1 
+					{F, F},
+					{T, F},
+					{F, F}
+				  }
+		map[50] = { //2
+					{F, F},
+					{T, F},
+					{T, F}
+				  }
+		map[51] = { //3
+					{F, F},
+					{T, T},
+					{F, F}
+				  }
+		map[52] = { //4
+					{F, F},
+					{T, T},
+					{F, T}
+				  }
+		map[53] = { //5
+					{F, F},
+					{T, F},
+					{F, T}
+				  }
+		map[54] = { //6
+					{F, F},
+					{T, T},
+					{T, F}
+				  }
+		map[55] = { //7
+					{F, F},
+					{T, T},
+					{T, T}
+				  }
+		map[56] = { //8
+					{F, F},
+					{T, F},
+					{T, T}
+				  }
+		map[57] = { //9
+					{F, F},
+					{F, T},
+					{T, F}
+				  }
+		map[58] = { // :
+					{T, F},
+					{F, T},
+					{F, T}
+				  }
+		map[59] = { // ;
+					{F, F},
+					{F, T},
+					{F, T}
+				  }
+		map[60] = { // <
+					{T, F},
+					{T, F},
+					{F, T}
+				  }
+		map[61] = { // =
+					{T, T},
+					{T, T},
+					{T, T}
+				  }
+		map[62] = { // >
+					{F, T},
+					{F, T},
+					{T, F}
+				  }
+		map[63] = { // ?
+					{T, T},
+					{F, T},
+					{F, T}
+				  }
+		map[64] = { // @
+					{F, T},
+					{F, F},
+					{F, F}
+				  }
+		map[97] = { // a
+					{T, F},
+					{F, F},
+					{F, F}
+				  }
+		map[98] = { // b 
+					{T, F},
+					{T, F},
+					{F, F}
+				  }
+		map[99] = { // c 
+					{T, T},
+					{F, F},
+					{F, F}
+				  }
+		map[100] = { // d
+					{T, T},
+					{F, T},
+					{F, F}
+				  }
+		map[101] = { // e
+					{T, F},
+					{F, T},
+					{F, F}
+				  }
+		map[102] = { // f
+					{T, T},
+					{T, F},
+					{F, F}
+				  }
+		map[103] = { // g
+					{T, T},
+					{T, T},
+					{F, F}
+				  }
+		map[104] = { // h
+					{T, F},
+					{T, T},
+					{F, F}
+				  }
+		map[105] = { // i 
+					{F, T},
+					{T, F},
+					{F, F}
+				  }
+		map[106] = { // j 
+					{F, T},
+					{T, T},
+					{F, F}
+				  }
+		map[107] = { // k 
+					{T, F},
+					{F, F},
+					{T, F}
+				  }
+		map[108] = { // l 
+					{T, F},
+					{T, F},
+					{T, F}
+				  }
+		map[109] = { // m 
+					{T, T},
+					{F, F},
+					{T, F}
+				  }
+		map[110] = { // n 
+					{T, T},
+					{F, T},
+					{T, F}
+				  }
+		map[111] = { // o 
+					{T, F},
+					{F, T},
+					{T, F}
+				  }
+		map[112] = { // p 
+					{T, T},
+					{T, F},
+					{T, F}
+				  }
+		map[113] = { // q 
+					{T, T},
+					{T, T},
+					{T, F}
+				  }
+		map[114] = { // r 
+					{T, F},
+					{T, T},
+					{T, F}
+				  }
+		map[115] = { // s 
+					{F, T},
+					{T, F},
+					{T, F}
+				  }
+		map[116] = { // t
+					{F, T},
+					{T, T},
+					{T, F}
+				  }
+		map[117] = { // u 
+					{T, F},
+					{F, F},
+					{T, T}
+				  }
+		map[118] = { // v 
+					{T, F},
+					{T, F},
+					{T, T}
+				  }
+		map[119] = { // w 
+					{F, T},
+					{T, T},
+					{F, T}
+				  }
+		map[120] = { // x 
+					{T, T},
+					{F, F},
+					{T, T}
+				  }
+		map[121] = { // y 
+					{T, T},
+					{F, T},
+					{T, T}
+				  }
+		map[122] = { // z
+					{T, F},
+					{F, T},
+					{T, T}
+				  }
+		map[91] = { // [
+					{F, T},
+					{T, F},
+					{F, T}
+				  }
+		map[92] = { // \
+					{T, F},
+					{T, T},
+					{F, T}
+				  }
+		map[93] = { // ]
+					{T, T},
+					{T, T},
+					{F, T}
+				  }
+		map[94] = { // ^
+					{F, T},
+					{F, T},
+					{F, F}
+				  }
+		map[95] = { // _
+					{F, T},
+					{F, T},
+					{F, T}
+				  }
+		
+		save map(memory_address)
+		save memory address (memory_location_hardcoded)
+
+
+	/* 
+	   Reads the next 14 characters from the current cursor position 
+	   and displays their braille translation on each cell via 
+	   electrical signal
+	*/ 
+
+	Refresh_Display():
+
+		select_signal = 0x00
+		for i in range (num_cells):
+			
+			if len(curr_text) == cursor_position + i - 1: // end of book reached
+				break
+
+			select_signal += 1 // not sure exactly how this will be indexed on the live device
+			curr_character = curr_text[cursor_position + i]
+
+			cell_display_coordinates = LookUpBraille(curr_character)
+			cell_pin_select_signal = 0x00
+
+			/*Display pins in the braille cell*/
+			for j in range (3):
+
+				for k in range(2):
+
+					if (cell_display_coordinates[j][k]):
+
+						/*Send electrical signal to pin by address */
+						
+						board[select_signal, cell_pin_select_signal] = 1 // it's going to be more complicated than this
+
+		return
+
+
+	/* Starts up the device, reads in current text and cursor position, handles interrupts for button presses */
+
+	Main_Function: 
+	
+		Set up scroll button signal as interrupt(&Scroll_Button_Interrupt)
+		Set up power off button as interrupt(&Power_Off_Interrupt)
+
+		Check if look up table exists:
+			check if free mem[address]:
+				if free:
+					Populate_Lookup_Table(address)
+		Try load text file or ascii text from memory
+
+			If fails:
+
+				cursor_position = 0
+				Read in PDF file (Emmy's working on this)
+				Translate to text file or ascii characters(Emmy's working on this)
+
+				store translated file to memory
+
+			Else:
+
+				load cursor_position from memory
+				curr_text = loaded ascii/txt
+
+		braille_lookup = load hashmap from memory
+
+		Forever: //possibly add low power mode in the future?
+	
+			if scroll_button_reading != last_button state:
+
+				Scroll_Button_Interrupt()
+
+				if scroll_button_state == off: //falling edge
+
+					cursor_position = cursor_position + 14
+
+					save cursor_position(memory_address)
+
+					Refresh_Display()
+
+
+
+
+
+
+
+
+		
